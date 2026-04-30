@@ -1,27 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
-import { LogIn, Mail, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { trpc } from '@/lib/trpc/client';
+import { UserPlus, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [registered, setRegistered] = useState(false);
 
-  useEffect(() => {
-    if (searchParams.get('registered')) {
-      setRegistered(true);
-    }
-  }, [searchParams]);
+  const registerMutation = trpc.user.register.useMutation({
+    onSuccess: () => {
+      router.push('/login?registered=true');
+    },
+    onError: (err) => {
+      setError(err.message);
+      setLoading(false);
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,51 +31,28 @@ export default function LoginPage() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
+    const name = formData.get('name') as string;
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
-    try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError('Credenciais inválidas. Tente novamente.');
-        setLoading(false);
-      } else {
-        router.push('/');
-        router.refresh();
-      }
-    } catch (err) {
-      setError('Ocorreu um erro inesperado.');
-      setLoading(false);
-    }
+    registerMutation.mutate({ name, email, password });
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-6">
       <div className="w-full max-w-md">
         <Card className="border-white/5 bg-black/40 backdrop-blur-xl relative overflow-hidden group">
-          <div className="absolute -top-24 -left-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-700" />
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-700" />
           
           <CardHeader className="relative z-10 text-center">
             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20">
-              <LogIn className="w-8 h-8 text-primary" />
+              <UserPlus className="w-8 h-8 text-primary" />
             </div>
-            <CardTitle className="text-2xl font-bold text-white">Acesso Restrito</CardTitle>
-            <CardDescription className="text-white/50">Identifique-se para gerenciar o catálogo.</CardDescription>
+            <CardTitle className="text-2xl font-bold text-white">Criar Conta</CardTitle>
+            <CardDescription className="text-white/50">Entre para o time de corretores da Lumina.</CardDescription>
           </CardHeader>
 
           <CardContent className="relative z-10">
-            {registered && (
-              <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 shrink-0" />
-                Conta criada com sucesso! Faça login agora.
-              </div>
-            )}
-
             {error && (
               <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center">
                 {error}
@@ -82,7 +61,22 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="ml-1">E-mail</Label>
+                <Label htmlFor="name" className="ml-1">Nome Completo</Label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 z-10" />
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    required
+                    placeholder="João Silva"
+                    className="pl-12"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="ml-1">E-mail Corporativo</Label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 z-10" />
                   <Input
@@ -90,7 +84,7 @@ export default function LoginPage() {
                     name="email"
                     type="email"
                     required
-                    placeholder="corretor@lumina.com"
+                    placeholder="joao@lumina.com"
                     className="pl-12"
                   />
                 </div>
@@ -116,9 +110,9 @@ export default function LoginPage() {
                 disabled={loading}
                 className="w-full group/btn"
               >
-                {loading ? 'Entrando...' : (
+                {loading ? 'Criando conta...' : (
                   <>
-                    Acessar Painel
+                    Registrar
                     <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
                   </>
                 )}
@@ -126,9 +120,9 @@ export default function LoginPage() {
             </form>
 
             <div className="mt-8 text-center text-sm text-white/40">
-              Ainda não tem acesso?{' '}
-              <Link href="/register" className="text-primary hover:underline font-medium">
-                Solicitar Registro
+              Já possui uma conta?{' '}
+              <Link href="/login" className="text-primary hover:underline font-medium">
+                Entrar
               </Link>
             </div>
           </CardContent>

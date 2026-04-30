@@ -1,10 +1,38 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
-import PropertyCard from '@/components/PropertyCard/PropertyCard';
+import { useState, useMemo } from 'react';
 import { trpc } from '@/lib/trpc/client';
-import { PropertyType } from '@/services/mockData';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { type Property } from '@/services/propertyService';
+
+type PropertyType = Property['type'];
+import {
+  Search,
+  Plus,
+  Building,
+  DollarSign,
+  TrendingUp,
+  Clock,
+  Eye,
+  Filter,
+  MapPin,
+  Bed,
+  Maximize,
+  Edit,
+  Loader2
+} from 'lucide-react';
+import Link from 'next/link';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 
 export default function Home() {
   const { data: properties = [], isLoading: loading } = trpc.property.list.useQuery();
@@ -12,152 +40,170 @@ export default function Home() {
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'Todos' | PropertyType>('Todos');
-  const [minBedrooms, setMinBedrooms] = useState<number | ''>('');
-  const [maxPrice, setMaxPrice] = useState<number | ''>('');
 
   const filteredProperties = useMemo(() => {
     return properties.filter(prop => {
-      // Search
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        if (
-          !prop.title.toLowerCase().includes(query) &&
-          !prop.address.toLowerCase().includes(query) &&
-          !prop.id.toLowerCase().includes(query)
-        ) {
-          return false;
-        }
+        if (!prop.title.toLowerCase().includes(query) && !prop.address.toLowerCase().includes(query)) return false;
       }
-
-      // Type
       if (typeFilter !== 'Todos' && prop.type !== typeFilter) return false;
-
-      // Bedrooms
-      if (minBedrooms !== '' && prop.bedrooms < Number(minBedrooms)) return false;
-
-      // Price
-      if (maxPrice !== '' && prop.price > Number(maxPrice)) return false;
-
       return true;
     });
-  }, [properties, searchQuery, typeFilter, minBedrooms, maxPrice]);
+  }, [properties, searchQuery, typeFilter]);
+
+  const stats = [
+    { label: 'Total de Imóveis', value: properties.length, icon: Building, color: 'text-blue-400', bg: 'bg-blue-400/10' },
+    { label: 'Valor em Carteira', value: `R$ ${(properties.reduce((acc, p) => acc + p.price, 0) / 1000000).toFixed(1)}M`, icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+    { label: 'Ativos p/ Venda', value: properties.filter(p => p.type === 'Venda').length, icon: TrendingUp, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+    { label: 'Atualizado Hoje', value: new Date().toLocaleDateString(), icon: Clock, color: 'text-purple-400', bg: 'bg-purple-400/10' },
+  ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-6 py-10">
+    <div className="p-8 pb-20">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Dashboard de Gestão</h1>
+          <p className="text-white/40 text-sm">Bem-vindo ao painel interno da Lumina. Monitore e gerencie seu inventário.</p>
+        </div>
+        <Link href="/cadastro" className={buttonVariants({ className: 'shadow-[0_0_20px_rgba(14,165,233,0.2)]' })}>
+          <Plus className="w-5 h-5 mr-2" />
+          Cadastrar Imóvel
+        </Link>
+      </div>
 
-        <div className="flex flex-col md:flex-row gap-8">
-
-          {/* Sidebar / Filters */}
-          <aside className="w-full md:w-72 shrink-0">
-            <div className="glass-card p-6 border-white/5 sticky top-24">
-              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-white/10">
-                <SlidersHorizontal className="w-5 h-5 text-primary" />
-                <h2 className="text-lg font-semibold text-white">Filtros</h2>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        {stats.map((stat, i) => (
+          <Card key={i} className="border-white/5 bg-white/[0.03] hover:bg-white/[0.05] transition-all">
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center`}>
+                <stat.icon className={`w-6 h-6 ${stat.color}`} />
               </div>
-
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-sm text-white/50">Tipo de Negócio</label>
-                  <div className="flex gap-2">
-                    {['Todos', 'Venda', 'Aluguel'].map(type => (
-                      <button
-                        key={type}
-                        onClick={() => setTypeFilter(type as any)}
-                        className={`flex-1 py-1.5 text-xs rounded-md transition-colors border ${typeFilter === type
-                          ? 'bg-primary/20 border-primary/50 text-white'
-                          : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
-                          }`}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-white/50">Quartos Mínimos</label>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="Ex: 2"
-                    value={minBedrooms}
-                    onChange={(e) => setMinBedrooms(Number(e.target.value))}
-                    className="w-full bg-black/40 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-primary/50"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-white/50">Preço Máximo (R$)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="Ex: 1000000"
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(Number(e.target.value))}
-                    className="w-full bg-black/40 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-primary/50"
-                  />
-                </div>
-
-                <button
-                  onClick={() => {
-                    setTypeFilter('Todos');
-                    setMinBedrooms('');
-                    setMaxPrice('');
-                    setSearchQuery('');
-                  }}
-                  className="w-full text-xs text-white/40 hover:text-white transition-colors"
-                >
-                  Limpar Filtros
-                </button>
+              <div>
+                <p className="text-xs text-white/40 font-medium mb-1">{stat.label}</p>
+                <p className="text-xl font-bold text-white">{stat.value}</p>
               </div>
-            </div>
-          </aside>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-          {/* Main List Area */}
-          <main className="flex-1">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-white mb-2">Catálogo Interno</h1>
-              <p className="text-white/50 text-sm">Gerencie o acervo de propriedades disponíveis.</p>
-            </div>
-
-            <div className="relative mb-6">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <input
-                type="text"
-                placeholder="Pesquisar por endereço, título ou ID do imóvel..."
+      {/* Main Content Area */}
+      <Card className="border-white/5 bg-white/[0.02] overflow-hidden">
+        <CardHeader className="p-0">
+          {/* Filters Bar */}
+          <div className="p-6 border-b border-white/5 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 z-10" />
+              <Input
+                placeholder="Pesquisar título, endereço ou código..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-black/20 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-white/30 transition-all"
+                className="pl-11"
               />
             </div>
 
-            <div className="flex items-center justify-between mb-4 text-sm text-white/50">
-              <span>Exibindo {loading ? '...' : filteredProperties.length} propriedades</span>
+            <div className="flex items-center gap-3">
+              <div className="flex bg-white/5 p-1 rounded-lg border border-white/5">
+                {['Todos', 'Venda', 'Aluguel'].map(t => (
+                  <Button
+                    key={t}
+                    variant={typeFilter === t ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setTypeFilter(t as any)}
+                    className="h-8 text-xs px-4 rounded-md"
+                  >
+                    {t}
+                  </Button>
+                ))}
+              </div>
+              <Button variant="outline" size="icon" className="border-white/5 bg-white/5">
+                <Filter className="w-4 h-4" />
+              </Button>
             </div>
+          </div>
+        </CardHeader>
 
-            <div className="flex flex-col gap-4">
+        {/* Table Area */}
+        <div className="relative">
+          <Table>
+            <TableHeader className="bg-white/[0.01]">
+              <TableRow className="border-white/5 hover:bg-transparent">
+                <TableHead className="w-[40%]">Imóvel</TableHead>
+                <TableHead>Construtora</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Preço</TableHead>
+                <TableHead>Características</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {loading ? (
-                <div className="py-20 text-center">
-                  <span className="inline-block w-8 h-8 border-2 border-white/20 border-t-primary rounded-full animate-spin"></span>
-                </div>
+                <TableRow>
+                  <TableCell colSpan={6} className="h-40 text-center">
+                    <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
+                  </TableCell>
+                </TableRow>
               ) : filteredProperties.length > 0 ? (
-                filteredProperties.map(property => (
-                  <PropertyCard key={property.id} property={property} />
+                filteredProperties.map((prop: any) => (
+                  <TableRow key={prop.id} className="border-white/5 hover:bg-white/[0.02] group transition-colors">
+                    <TableCell>
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                          <img src={prop.image} alt="" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-white truncate">{prop.title}</p>
+                          <p className="text-xs text-white/30 truncate flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {prop.address}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-xs font-medium text-white/60">{prop.companyName || '---'}</p>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={prop.type === 'Venda' ? 'default' : 'secondary'} className="uppercase text-[10px] tracking-wider">
+                        {prop.type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-sm font-bold text-white">R$ {(prop.price).toLocaleString('pt-BR')}</p>
+                      {prop.type === 'Aluguel' && <p className="text-[10px] text-white/30">por mês</p>}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3 text-white/40">
+                        <span className="flex items-center gap-1 text-xs"><Bed className="w-3 h-3" /> {prop.bedrooms}</span>
+                        <span className="flex items-center gap-1 text-xs"><Maximize className="w-3 h-3" /> {prop.area}m²</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Link href={`/property/${prop.id}`} className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'h-8 w-8' })}>
+                          <Eye className="w-4 h-4" />
+                        </Link>
+                        <Link href={`/cadastro/${prop.id}`} className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'h-8 w-8' })}>
+                          <Edit className="w-4 h-4" />
+                        </Link>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 ))
               ) : (
-                <div className="glass-card py-16 text-center border-white/5">
-                  <Search className="w-10 h-10 text-white/20 mx-auto mb-4" />
-                  <p className="text-white/50 font-medium">Nenhum imóvel encontrado.</p>
-                  <p className="text-sm text-white/30 mt-1">Tente ajustar seus filtros de busca.</p>
-                </div>
+                <TableRow>
+                  <TableCell colSpan={6} className="h-40 text-center text-white/20 italic">
+                    Nenhum imóvel encontrado com os filtros atuais.
+                  </TableCell>
+                </TableRow>
               )}
-            </div>
-          </main>
-
+            </TableBody>
+          </Table>
         </div>
-
-      </div>
+      </Card>
     </div>
   );
 }

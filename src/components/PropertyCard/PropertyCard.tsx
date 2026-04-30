@@ -1,6 +1,20 @@
 import Link from 'next/link';
-import { Property } from '@/services/mockData';
-import { Bed, Bath, CarFront, Maximize, MapPin } from 'lucide-react';
+import { Bed, Bath, CarFront, Maximize, MapPin, User } from 'lucide-react';
+
+interface Property {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  price: number;
+  bedrooms: number;
+  bathrooms: number;
+  parkingSpots: number;
+  area: number;
+  address: string;
+  image: string;
+  addedBy?: string | null;
+}
 
 interface PropertyCardProps {
   property: Property;
@@ -43,6 +57,12 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                 <MapPin className="w-3.5 h-3.5" />
                 {property.address}
               </p>
+              {property.addedBy && (
+                <div className="mt-2 text-[10px] text-primary/70 font-medium flex items-center gap-1 bg-primary/5 px-2 py-0.5 rounded-full w-fit">
+                  <User className="w-2.5 h-2.5" />
+                  Corretor: {property.addedBy}
+                </div>
+              )}
             </div>
             <div className="text-right">
               <div className="text-xl font-bold text-white whitespace-nowrap">{formattedPrice}</div>

@@ -1,8 +1,12 @@
 import type { Metadata } from 'next';
-import { Outfit } from 'next/font/google';
+import { Outfit, Geist } from 'next/font/google';
 import './globals.css';
-import Navbar from '@/components/Navbar/Navbar';
+import Sidebar from '@/components/Sidebar/Sidebar';
 import Provider from '@/lib/trpc/Provider';
+import { auth } from '@/auth';
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const outfit = Outfit({
   variable: '--font-outfit',
@@ -11,23 +15,27 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: 'Lumina | Imóveis Premium',
-  description: 'Gerenciador de catálogo de imóveis de alto padrão para venda e aluguel.',
+  title: 'Lumina | Dashboard Interno',
+  description: 'Sistema de gestão de imóveis premium.',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
-    <html lang="pt-BR" className={`${outfit.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+    <html lang="pt-BR" className={cn("h-full", "antialiased", outfit.variable, "font-sans", geist.variable)}>
+      <body className="h-full bg-background text-foreground overflow-hidden">
         <Provider>
-          <Navbar />
-          <main className="flex-1 w-full relative">
-            {children}
-          </main>
+          <div className="flex h-screen overflow-hidden">
+            <Sidebar user={session?.user} />
+            <main className="flex-1 overflow-y-auto bg-[#0a0a0a] relative">
+              {children}
+            </main>
+          </div>
         </Provider>
       </body>
     </html>
