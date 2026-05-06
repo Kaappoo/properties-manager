@@ -13,7 +13,9 @@ interface Property {
   area: number;
   address: string;
   image: string;
+  condition: string;
   addedBy?: string | null;
+
 }
 
 interface PropertyCardProps {
@@ -32,11 +34,15 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         
         {/* Image Section - Left */}
         <div className="relative w-full md:w-64 h-48 md:h-full shrink-0">
-          <div className="absolute top-3 left-3 z-10 text-[10px]">
-            <span className={`px-2 py-1 rounded-md font-semibold backdrop-blur-md border border-white/20 ${property.type === 'Venda' ? 'bg-primary/80 text-white' : 'bg-emerald-500/80 text-white'}`}>
+          <div className="absolute top-3 left-3 z-10 text-[10px] flex gap-1.5">
+            <span className={`px-2 py-1 rounded-md font-semibold backdrop-blur-md border border-white/20 ${property.condition === 'Novo' ? 'bg-primary/80 text-white' : 'bg-emerald-500/80 text-white'}`}>
+              {property.condition}
+            </span>
+            <span className="px-2 py-1 rounded-md font-semibold backdrop-blur-md border border-white/20 bg-white/10 text-white/90">
               {property.type}
             </span>
           </div>
+
           <div className="absolute bottom-3 left-3 z-10 text-xs text-white/80 bg-black/50 px-2 py-1 rounded backdrop-blur-sm">
             ID: {property.id}
           </div>

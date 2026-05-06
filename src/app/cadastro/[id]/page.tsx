@@ -6,10 +6,26 @@ import { trpc } from '@/lib/trpc/client';
 import { BuildingIcon, Save, Plus, X, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+
 export default function EditPropertyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const [success, setSuccess] = useState(false);
+  
+  const { data: companies = [] } = trpc.company.list.useQuery();
+  
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -21,6 +37,8 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
     area: '',
     address: '',
     image: '',
+    condition: 'Novo' as 'Novo' | 'Seminovo',
+    companyId: '',
     highlights: [] as string[]
   });
 
@@ -48,6 +66,8 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
         area: property.area.toString(),
         address: property.address,
         image: property.image,
+        condition: (property as any).condition || 'Novo',
+        companyId: property.companyId || '',
         highlights: property.highlights || [],
       });
     }
@@ -88,6 +108,8 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
         area: Number(formData.area),
         address: formData.address,
         image: formData.image,
+        condition: formData.condition,
+        companyId: formData.companyId || undefined,
         highlights: formData.highlights,
       },
     });
@@ -132,127 +154,197 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
         </div>
 
         {success ? (
-          <div className="glass-card p-12 text-center border-emerald-500/30">
-            <h2 className="text-2xl font-semibold text-emerald-400 mb-2">Imóvel Atualizado com Sucesso!</h2>
-            <p className="text-white/60">Você está sendo redirecionado...</p>
-          </div>
+          <Card className="border-emerald-500/30 bg-black/40 backdrop-blur-xl">
+            <CardContent className="p-12 text-center">
+              <h2 className="text-2xl font-semibold text-emerald-400 mb-2">Imóvel Atualizado com Sucesso!</h2>
+              <p className="text-white/60">Você está sendo redirecionado...</p>
+            </CardContent>
+          </Card>
         ) : (
-          <form onSubmit={handleSubmit} className="glass-card p-8 md:p-10 border-white/5 space-y-8">
-            
-            <div>
-              <h3 className="text-xl font-medium mb-6 pb-2 border-b border-white/10">Informações Básicas</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-medium text-white/70">Título do Imóvel</label>
-                  <input 
-                    required 
-                    value={formData.title}
-                    onChange={e => setFormData({...formData, title: e.target.value})}
-                    type="text" 
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/70">Tipo de Negócio</label>
-                  <select 
-                    value={formData.type}
-                    onChange={e => setFormData({...formData, type: e.target.value as 'Venda'|'Aluguel'})}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none"
-                  >
-                    <option value="Venda" className="bg-[#111]">Venda</option>
-                    <option value="Aluguel" className="bg-[#111]">Aluguel</option>
-                  </select>
-                </div>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <Card className="border-white/5 bg-black/40 backdrop-blur-xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-medium">Informações Básicas</CardTitle>
+                <CardDescription>Insira os detalhes principais do imóvel.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="title">Título do Imóvel</Label>
+                    <Input 
+                      id="title"
+                      required 
+                      value={formData.title}
+                      onChange={e => setFormData({...formData, title: e.target.value})}
+                      placeholder="Ex: Cobertura Duplex no Itaim"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/70">Preço (R$)</label>
-                  <input 
-                    required 
-                    value={formData.price}
-                    onChange={e => setFormData({...formData, price: e.target.value})}
-                    type="number" 
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                  />
-                </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Construtora Responsável</Label>
+                    <div className="flex gap-2">
+                      <Select
+                        value={formData.companyId || null}
+                        onValueChange={value => setFormData({ ...formData, companyId: value ?? "" })}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Selecione uma construtora (opcional)">
+                            {formData.companyId ? companies.find(c => c.id === formData.companyId)?.name : null}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {companies.map(company => (
+                            <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {formData.companyId && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setFormData({ ...formData, companyId: "" })}
+                          className="shrink-0 border-white/5 bg-black/40 hover:bg-white/10"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Tipo de Negócio</Label>
+                    <Select 
+                      value={formData.type} 
+                      onValueChange={value => setFormData({...formData, type: value as 'Venda' | 'Aluguel'})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Venda">Venda</SelectItem>
+                        <SelectItem value="Aluguel">Aluguel</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-medium text-white/70">Endereço Completo</label>
-                  <input 
-                    required 
-                    value={formData.address}
-                    onChange={e => setFormData({...formData, address: e.target.value})}
-                    type="text" 
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                  />
-                </div>
-              </div>
-            </div>
+                  <div className="space-y-2">
+                    <Label>Estado do Imóvel</Label>
+                    <Select 
+                      value={formData.condition} 
+                      onValueChange={value => setFormData({...formData, condition: value as 'Novo' | 'Seminovo'})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Novo">Novo</SelectItem>
+                        <SelectItem value="Seminovo">Seminovo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            <div>
-              <h3 className="text-xl font-medium mb-6 pb-2 border-b border-white/10">Características</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/70">Quartos</label>
-                  <input 
-                    required 
-                    value={formData.bedrooms}
-                    onChange={e => setFormData({...formData, bedrooms: e.target.value})}
-                    type="number" 
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/70">Banheiros</label>
-                  <input 
-                    required 
-                    value={formData.bathrooms}
-                    onChange={e => setFormData({...formData, bathrooms: e.target.value})}
-                    type="number" 
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/70">Vagas</label>
-                  <input 
-                    required 
-                    value={formData.parkingSpots}
-                    onChange={e => setFormData({...formData, parkingSpots: e.target.value})}
-                    type="number" 
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/70">Área (m²)</label>
-                  <input 
-                    required 
-                    value={formData.area}
-                    onChange={e => setFormData({...formData, area: e.target.value})}
-                    type="number" 
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  />
-                </div>
-              </div>
-            </div>
 
-            <div>
-              <h3 className="text-xl font-medium mb-6 pb-2 border-b border-white/10">Detalhes Adicionais</h3>
-              <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Preço (R$)</Label>
+                    <Input 
+                      id="price"
+                      required 
+                      value={formData.price}
+                      onChange={e => setFormData({...formData, price: e.target.value})}
+                      type="number" 
+                      placeholder="Ex: 5000000"
+                    />
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="address">Endereço Completo</Label>
+                    <Input 
+                      id="address"
+                      required 
+                      value={formData.address}
+                      onChange={e => setFormData({...formData, address: e.target.value})}
+                      placeholder="Av. Faria Lima, 1000 - Itaim Bibi, São Paulo"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-white/5 bg-black/40 backdrop-blur-xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-medium">Características</CardTitle>
+                <CardDescription>Detalhes técnicos do imóvel.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="bedrooms">Quartos</Label>
+                    <Input 
+                      id="bedrooms"
+                      required 
+                      value={formData.bedrooms}
+                      onChange={e => setFormData({...formData, bedrooms: e.target.value})}
+                      type="number" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bathrooms">Banheiros</Label>
+                    <Input 
+                      id="bathrooms"
+                      required 
+                      value={formData.bathrooms}
+                      onChange={e => setFormData({...formData, bathrooms: e.target.value})}
+                      type="number" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="parking">Vagas</Label>
+                    <Input 
+                      id="parking"
+                      required 
+                      value={formData.parkingSpots}
+                      onChange={e => setFormData({...formData, parkingSpots: e.target.value})}
+                      type="number" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="area">Área (m²)</Label>
+                    <Input 
+                      id="area"
+                      required 
+                      value={formData.area}
+                      onChange={e => setFormData({...formData, area: e.target.value})}
+                      type="number" 
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-white/5 bg-black/40 backdrop-blur-xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-medium">Detalhes Adicionais</CardTitle>
+                <CardDescription>Descrição e destaques do imóvel.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/70">Descrição Geral</label>
-                  <textarea 
+                  <Label htmlFor="description">Descrição Geral</Label>
+                  <Textarea 
+                    id="description"
                     required
                     value={formData.description}
                     onChange={e => setFormData({...formData, description: e.target.value})}
                     rows={5}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all resize-none"
+                    placeholder="Detalhe os principais diferenciais do imóvel..."
+                    className="resize-none"
                   />
                 </div>
 
                 <div className="space-y-4">
-                  <label className="text-sm font-medium text-white/70">Destaques e Comodidades</label>
+                  <Label>Destaques e Comodidades</Label>
                   <div className="flex gap-2">
-                    <input 
+                    <Input 
                       value={newHighlight}
                       onChange={e => setNewHighlight(e.target.value)}
                       onKeyDown={e => {
@@ -261,17 +353,17 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
                           addHighlight();
                         }
                       }}
-                      type="text" 
-                      className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                       placeholder="Ex: Piscina Aquecida"
+                      className="flex-1"
                     />
-                    <button 
+                    <Button 
                       type="button"
+                      variant="secondary"
+                      size="icon"
                       onClick={addHighlight}
-                      className="bg-white/5 hover:bg-white/10 border border-white/10 p-3 rounded-xl transition-all"
                     >
                       <Plus className="w-5 h-5 text-primary" />
-                    </button>
+                    </Button>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
@@ -290,28 +382,31 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
                         </button>
                       </span>
                     ))}
+                    {formData.highlights.length === 0 && (
+                      <p className="text-xs text-white/30 italic">Nenhum destaque adicionado ainda.</p>
+                    )}
                   </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             <div className="pt-6">
-              <button 
+              <Button 
                 type="submit" 
+                size="lg"
                 disabled={updateProperty.isPending}
-                className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-semibold py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)]"
               >
                 {updateProperty.isPending ? (
-                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    <Save className="w-5 h-5" />
+                    <Save className="w-5 h-5 mr-2" />
                     Salvar Alterações
                   </>
                 )}
-              </button>
+              </Button>
             </div>
-
           </form>
         )}
       </div>

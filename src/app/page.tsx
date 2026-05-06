@@ -74,7 +74,7 @@ export default function Home() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         {stats.map((stat, i) => (
           <Card key={i} className="border-white/5 bg-white/[0.03] hover:bg-white/[0.05] transition-all">
             <CardContent className="p-5 flex items-center gap-4">
@@ -88,7 +88,7 @@ export default function Home() {
             </CardContent>
           </Card>
         ))}
-      </div>
+      </div> */}
 
       {/* Main Content Area */}
       <Card className="border-white/5 bg-white/[0.02] overflow-hidden">
@@ -133,7 +133,8 @@ export default function Home() {
               <TableRow className="border-white/5 hover:bg-transparent">
                 <TableHead className="w-[40%]">Imóvel</TableHead>
                 <TableHead>Construtora</TableHead>
-                <TableHead>Tipo</TableHead>
+                <TableHead>Estado</TableHead>
+
                 <TableHead>Preço</TableHead>
                 <TableHead>Características</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
@@ -167,10 +168,15 @@ export default function Home() {
                       <p className="text-xs font-medium text-white/60">{prop.companyName || '---'}</p>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={prop.type === 'Venda' ? 'default' : 'secondary'} className="uppercase text-[10px] tracking-wider">
-                        {prop.type}
+                      <Badge
+                        variant={prop.condition === 'Novo' ? 'default' : 'secondary'}
+                        className={`uppercase text-[10px] tracking-wider ${prop.condition === 'Novo' ? 'bg-primary/20 text-primary border-primary/30 hover:bg-primary/30' : 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20 hover:bg-emerald-400/20'}`}
+                      >
+                        {prop.condition}
                       </Badge>
+                      <p className="text-[9px] text-white/30 mt-1 uppercase font-bold tracking-tight">{prop.type}</p>
                     </TableCell>
+
                     <TableCell>
                       <p className="text-sm font-bold text-white">R$ {(prop.price).toLocaleString('pt-BR')}</p>
                       {prop.type === 'Aluguel' && <p className="text-[10px] text-white/30">por mês</p>}

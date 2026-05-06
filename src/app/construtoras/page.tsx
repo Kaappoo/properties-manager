@@ -62,11 +62,9 @@ export default function ConstrutorasPage() {
         </div>
         
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="shadow-lg shadow-primary/10">
-              <Plus className="w-5 h-5 mr-2" />
-              Nova Construtora
-            </Button>
+          <DialogTrigger render={<Button className="shadow-lg shadow-primary/10" />}>
+            <Plus className="w-5 h-5 mr-2" />
+            Nova Construtora
           </DialogTrigger>
           <DialogContent className="sm:max-w-[525px] bg-neutral-900 border-white/5">
             <form onSubmit={handleSubmit}>

@@ -20,7 +20,9 @@ export const propertyRouter = router({
         address: properties.address,
         image: properties.image,
         status: properties.status,
+        condition: properties.condition,
         highlights: properties.highlights,
+
         createdAt: properties.createdAt,
         addedBy: users.name,
         companyName: companies.name,

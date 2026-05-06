@@ -4,6 +4,8 @@ import type { AdapterAccountType } from 'next-auth/adapters';
 
 export const propertyTypeEnum = pgEnum('property_type', ['Venda', 'Aluguel']);
 export const propertyStatusEnum = pgEnum('property_status', ['Ativo', 'Inativo']);
+export const propertyConditionEnum = pgEnum('property_condition', ['Novo', 'Seminovo']);
+
 
 // --- Auth Tables (NextAuth Standard) ---
 
@@ -84,7 +86,9 @@ export const properties = pgTable('properties', {
   address: text('address').notNull(),
   image: text('image').notNull(),
   status: propertyStatusEnum('status').notNull().default('Ativo'),
+  condition: propertyConditionEnum('condition').notNull().default('Novo'),
   highlights: text('highlights').array().notNull().default([]),
+
   companyId: text('company_id').references(() => companies.id),
   addedBy: text('added_by').references(() => users.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),

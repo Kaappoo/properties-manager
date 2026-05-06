@@ -44,7 +44,9 @@ export default function CadastroPage() {
     address: '',
     companyId: '',
     image: 'https://images.unsplash.com/photo-1628624747186-a941c476b7ef?w=800&auto=format&fit=crop&q=80',
+    condition: 'Novo' as 'Novo' | 'Seminovo',
     highlights: [] as string[]
+
   });
 
   const [newHighlight, setNewHighlight] = useState('');
@@ -80,7 +82,9 @@ export default function CadastroPage() {
       area: Number(formData.area),
       address: formData.address,
       image: formData.image,
+      condition: formData.condition,
       highlights: formData.highlights,
+
       companyId: formData.companyId || undefined,
     });
   };
@@ -129,19 +133,34 @@ export default function CadastroPage() {
 
                   <div className="space-y-2 md:col-span-2">
                     <Label>Construtora Responsável</Label>
-                    <Select 
-                      value={formData.companyId} 
-                      onValueChange={value => setFormData({...formData, companyId: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma construtora (opcional)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {companies.map(company => (
-                          <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2">
+                      <Select
+                        value={formData.companyId || null}
+                        onValueChange={value => setFormData({ ...formData, companyId: value ?? "" })}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Selecione uma construtora (opcional)">
+                            {formData.companyId ? companies.find(c => c.id === formData.companyId)?.name : null}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {companies.map(company => (
+                            <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {formData.companyId && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setFormData({ ...formData, companyId: "" })}
+                          className="shrink-0 border-white/5 bg-black/40 hover:bg-white/10"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="space-y-2">
@@ -159,6 +178,23 @@ export default function CadastroPage() {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div className="space-y-2">
+                    <Label>Estado do Imóvel</Label>
+                    <Select 
+                      value={formData.condition} 
+                      onValueChange={value => setFormData({...formData, condition: value as 'Novo' | 'Seminovo'})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Novo">Novo</SelectItem>
+                        <SelectItem value="Seminovo">Seminovo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
 
                   <div className="space-y-2">
                     <Label htmlFor="price">Preço (R$)</Label>

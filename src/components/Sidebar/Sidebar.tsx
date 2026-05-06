@@ -26,7 +26,8 @@ export default function Sidebar({ user }: { user: any }) {
   const pathname = usePathname();
 
   const isAuthPage = pathname === '/login' || pathname === '/register';
-
+  const whiteLabelName = "Pacheco & Andrade"
+  const whiteLabelLogo = "P&A"
   if (isAuthPage) return null;
 
   return (
@@ -35,10 +36,10 @@ export default function Sidebar({ user }: { user: any }) {
       <div className="p-6 border-b border-white/5">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold shadow-[0_0_15px_rgba(14,165,233,0.3)] group-hover:scale-105 transition-transform">
-            L
+            {whiteLabelLogo}
           </div>
           <span className="text-xl font-bold tracking-tight text-white">
-            Lumina<span className="text-primary">.</span>
+            {whiteLabelName}<span className="text-primary">.</span>
           </span>
         </Link>
       </div>

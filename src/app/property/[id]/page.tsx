@@ -26,12 +26,17 @@ export default async function PropertyDetails({ params }: { params: Promise<{ id
           Voltar para a Listagem
         </Link>
         <div className="flex items-center gap-3">
-          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${property.type === 'Venda' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/20'}`}>
+          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${property.condition === 'Novo' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/20'}`}>
+            {property.condition}
+          </span>
+          <span className="px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-white/60 uppercase tracking-wider">
             {property.type}
           </span>
+
           <span className="px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-white/40 uppercase tracking-wider">
             ID: {property.id.slice(0, 8)}
           </span>
+
         </div>
       </div>
 
