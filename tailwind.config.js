@@ -22,5 +22,11 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('tailwindcss-animate'),
+    function ({ addVariant }) {
+      addVariant('data-open', '&[data-open]')
+      addVariant('data-closed', '&[data-closed]')
+    }
+  ],
 }

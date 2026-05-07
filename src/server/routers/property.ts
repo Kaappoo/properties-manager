@@ -22,7 +22,11 @@ export const propertyRouter = router({
         status: properties.status,
         condition: properties.condition,
         highlights: properties.highlights,
+        floor: properties.floor,
+        condoFee: properties.condoFee,
 
+        soldAt: properties.soldAt,
+        deactivatedAt: properties.deactivatedAt,
         createdAt: properties.createdAt,
         addedBy: users.name,
         companyName: companies.name,

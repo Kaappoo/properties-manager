@@ -1,5 +1,5 @@
 import { propertyService } from '@/services/propertyService';
-import { Bed, Bath, CarFront, Maximize, MapPin, CheckCircle, Calendar, Hash, ArrowLeft, Building, ArrowUpRight } from 'lucide-react';
+import { Bed, Bath, CarFront, Maximize, MapPin, CheckCircle, Calendar, Hash, ArrowLeft, Building, ArrowUpRight, Layers, User } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import BrokerActions from './BrokerActions';
@@ -26,6 +26,8 @@ export default async function PropertyDetails({ params }: { params: Promise<{ id
           Voltar para a Listagem
         </Link>
         <div className="flex items-center gap-3">
+          {property.soldAt && <span className="px-3 py-1 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 text-[10px] font-bold uppercase tracking-wider">Vendido em {new Date(property.soldAt).toLocaleDateString()}</span>}
+          {property.deactivatedAt && <span className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20 text-[10px] font-bold uppercase tracking-wider">Desativado em {new Date(property.deactivatedAt).toLocaleDateString()}</span>}
           <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${property.condition === 'Novo' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/20'}`}>
             {property.condition}
           </span>
@@ -45,9 +47,9 @@ export default async function PropertyDetails({ params }: { params: Promise<{ id
         <div className="lg:col-span-8 space-y-8">
           {/* Main Image */}
           <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden aspect-[16/9] relative group">
-            <img 
-              src={property.image} 
-              alt={property.title} 
+            <img
+              src={property.image}
+              alt={property.title}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
           </div>
@@ -60,12 +62,13 @@ export default async function PropertyDetails({ params }: { params: Promise<{ id
               {property.address}
             </p>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {[
                 { icon: Bed, label: 'Quartos', value: property.bedrooms },
                 { icon: Bath, label: 'Banheiros', value: property.bathrooms },
                 { icon: CarFront, label: 'Vagas', value: property.parkingSpots },
                 { icon: Maximize, label: 'Área', value: `${property.area}m²` },
+                ...(property.floor ? [{ icon: Layers, label: 'Andar', value: `${property.floor}º` }] : []),
               ].map((stat, i) => (
                 <div key={i} className="bg-white/5 border border-white/5 rounded-2xl p-4 flex flex-col items-center">
                   <stat.icon className="w-5 h-5 text-primary mb-2" />
@@ -116,15 +119,24 @@ export default async function PropertyDetails({ params }: { params: Promise<{ id
               {formattedPrice}
             </div>
             {property.type === 'Aluguel' && <p className="text-sm text-white/30 mb-6">valor mensal total</p>}
-            
-            <div className="space-y-3 mt-8">
+
+            {property.condoFee ? (
+              <div className="mt-4 bg-white/5 p-4 rounded-2xl border border-white/5 flex items-center justify-between">
+                <span className="text-white/40 text-xs font-semibold uppercase tracking-wider">Condomínio</span>
+                <span className="text-white font-bold text-lg">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(property.condoFee)}
+                </span>
+              </div>
+            ) : null}
+
+            {/* <div className="space-y-3 mt-8">
               <button className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 rounded-2xl transition-all shadow-xl shadow-primary/10">
                 Gerar Relatório PDF
               </button>
               <button className="w-full bg-white/5 hover:bg-white/10 text-white font-semibold py-4 rounded-2xl border border-white/10 transition-all">
                 Enviar p/ Cliente
               </button>
-            </div>
+            </div> */}
 
             <div className="mt-8 pt-8 border-t border-white/5 space-y-4">
               {property.company && (
@@ -158,10 +170,16 @@ export default async function PropertyDetails({ params }: { params: Promise<{ id
                 <span className="text-white/30 flex items-center gap-2"><Hash className="w-3.5 h-3.5" /> Código Interno</span>
                 <span className="text-white/60 font-mono">{property.id.slice(0, 8).toUpperCase()}</span>
               </div>
+              {property.addedByName && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-white/30 flex items-center gap-2"><User className="w-3.5 h-3.5" /> Adicionado por</span>
+                  <span className="text-white/60 font-medium">{property.addedByName}</span>
+                </div>
+              )}
             </div>
 
             <div className="mt-8">
-              <BrokerActions propertyId={property.id} />
+              <BrokerActions propertyId={property.id} isSold={!!property.soldAt} />
             </div>
           </div>
         </div>

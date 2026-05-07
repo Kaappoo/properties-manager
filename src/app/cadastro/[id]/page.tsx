@@ -35,6 +35,8 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
     bathrooms: '',
     parkingSpots: '',
     area: '',
+    floor: '',
+    condoFee: '',
     address: '',
     image: '',
     condition: 'Novo' as 'Novo' | 'Seminovo',
@@ -64,6 +66,8 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
         bathrooms: property.bathrooms.toString(),
         parkingSpots: property.parkingSpots.toString(),
         area: property.area.toString(),
+        floor: property.floor?.toString() || '',
+        condoFee: property.condoFee?.toString() || '',
         address: property.address,
         image: property.image,
         condition: (property as any).condition || 'Novo',
@@ -106,6 +110,8 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
         bathrooms: Number(formData.bathrooms),
         parkingSpots: Number(formData.parkingSpots),
         area: Number(formData.area),
+        floor: formData.floor ? Number(formData.floor) : undefined,
+        condoFee: formData.condoFee ? Number(formData.condoFee) : undefined,
         address: formData.address,
         image: formData.image,
         condition: formData.condition,
@@ -316,6 +322,26 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
                       value={formData.area}
                       onChange={e => setFormData({...formData, area: e.target.value})}
                       type="number" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="floor">Andar (se apto)</Label>
+                    <Input 
+                      id="floor"
+                      value={formData.floor}
+                      onChange={e => setFormData({...formData, floor: e.target.value})}
+                      type="number" 
+                      placeholder="Ex: 5"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="condoFee">Condomínio (R$)</Label>
+                    <Input 
+                      id="condoFee"
+                      value={formData.condoFee}
+                      onChange={e => setFormData({...formData, condoFee: e.target.value})}
+                      type="number" 
+                      placeholder="Ex: 1500"
                     />
                   </div>
                 </div>

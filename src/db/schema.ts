@@ -1,5 +1,6 @@
 import { pgTable, text, integer, doublePrecision, timestamp, pgEnum, primaryKey, boolean } from 'drizzle-orm/pg-core';
 import { createSelectSchema, createInsertSchema } from 'drizzle-zod';
+import { z } from 'zod';
 import type { AdapterAccountType } from 'next-auth/adapters';
 
 export const propertyTypeEnum = pgEnum('property_type', ['Venda', 'Aluguel']);
@@ -88,15 +89,22 @@ export const properties = pgTable('properties', {
   status: propertyStatusEnum('status').notNull().default('Ativo'),
   condition: propertyConditionEnum('condition').notNull().default('Novo'),
   highlights: text('highlights').array().notNull().default([]),
+  floor: integer('floor'),
+  condoFee: doublePrecision('condo_fee'),
 
   companyId: text('company_id').references(() => companies.id),
   addedBy: text('added_by').references(() => users.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  soldAt: timestamp('sold_at', { mode: 'date' }),
+  deactivatedAt: timestamp('deactivated_at', { mode: 'date' }),
 });
 
 // Zod schemas for validation
 export const selectPropertySchema = createSelectSchema(properties);
-export const insertPropertySchema = createInsertSchema(properties);
+export const insertPropertySchema = createInsertSchema(properties, {
+  soldAt: z.coerce.date().optional(),
+  deactivatedAt: z.coerce.date().optional(),
+});
 export const selectUserSchema = createSelectSchema(users);
 export const insertUserSchema = createInsertSchema(users);
 export const selectCompanySchema = createSelectSchema(companies);

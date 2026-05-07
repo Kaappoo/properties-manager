@@ -40,9 +40,18 @@ export default function Home() {
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'Todos' | PropertyType>('Todos');
+  const [statusFilter, setStatusFilter] = useState<'Ativos' | 'Vendidos' | 'Desativados' | 'Todos'>('Ativos');
 
   const filteredProperties = useMemo(() => {
     return properties.filter(prop => {
+      const isSold = !!prop.soldAt;
+      const isDeactivated = !!prop.deactivatedAt;
+      const isActive = !isSold && !isDeactivated;
+
+
+      if (statusFilter === 'Ativos' && !isActive) return false;
+      if (statusFilter === 'Vendidos' && !isSold) return false;
+      if (statusFilter === 'Desativados' && !isDeactivated) return false;
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         if (!prop.title.toLowerCase().includes(query) && !prop.address.toLowerCase().includes(query)) return false;
@@ -50,7 +59,7 @@ export default function Home() {
       if (typeFilter !== 'Todos' && prop.type !== typeFilter) return false;
       return true;
     });
-  }, [properties, searchQuery, typeFilter]);
+  }, [properties, searchQuery, typeFilter, statusFilter]);
 
   const stats = [
     { label: 'Total de Imóveis', value: properties.length, icon: Building, color: 'text-blue-400', bg: 'bg-blue-400/10' },
@@ -106,6 +115,19 @@ export default function Home() {
             </div>
 
             <div className="flex items-center gap-3">
+              <div className="flex bg-white/5 p-1 rounded-lg border border-white/5">
+                {['Ativos', 'Vendidos', 'Desativados', 'Todos'].map(s => (
+                  <Button
+                    key={s}
+                    variant={statusFilter === s ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setStatusFilter(s as any)}
+                    className={`h-8 text-xs px-3 rounded-md ${statusFilter === s ? 'bg-primary/20 text-primary hover:bg-primary/30' : ''}`}
+                  >
+                    {s}
+                  </Button>
+                ))}
+              </div>
               <div className="flex bg-white/5 p-1 rounded-lg border border-white/5">
                 {['Todos', 'Venda', 'Aluguel'].map(t => (
                   <Button
@@ -168,12 +190,18 @@ export default function Home() {
                       <p className="text-xs font-medium text-white/60">{prop.companyName || '---'}</p>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={prop.condition === 'Novo' ? 'default' : 'secondary'}
-                        className={`uppercase text-[10px] tracking-wider ${prop.condition === 'Novo' ? 'bg-primary/20 text-primary border-primary/30 hover:bg-primary/30' : 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20 hover:bg-emerald-400/20'}`}
-                      >
-                        {prop.condition}
-                      </Badge>
+                      {prop.soldAt ? (
+                        <Badge variant="destructive" className="uppercase text-[10px] tracking-wider mb-1">Vendido</Badge>
+                      ) : prop.deactivatedAt ? (
+                        <Badge variant="secondary" className="uppercase text-[10px] tracking-wider mb-1 bg-orange-500/20 text-orange-400">Desativado</Badge>
+                      ) : (
+                        <Badge
+                          variant={prop.condition === 'Novo' ? 'default' : 'secondary'}
+                          className={`uppercase text-[10px] tracking-wider ${prop.condition === 'Novo' ? 'bg-primary/20 text-primary border-primary/30 hover:bg-primary/30' : 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20 hover:bg-emerald-400/20'}`}
+                        >
+                          {prop.condition}
+                        </Badge>
+                      )}
                       <p className="text-[9px] text-white/30 mt-1 uppercase font-bold tracking-tight">{prop.type}</p>
                     </TableCell>
 

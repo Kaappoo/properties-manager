@@ -41,6 +41,8 @@ export default function CadastroPage() {
     bathrooms: '',
     parkingSpots: '',
     area: '',
+    floor: '',
+    condoFee: '',
     address: '',
     companyId: '',
     image: 'https://images.unsplash.com/photo-1628624747186-a941c476b7ef?w=800&auto=format&fit=crop&q=80',
@@ -80,6 +82,8 @@ export default function CadastroPage() {
       bathrooms: Number(formData.bathrooms),
       parkingSpots: Number(formData.parkingSpots),
       area: Number(formData.area),
+      floor: formData.floor ? Number(formData.floor) : undefined,
+      condoFee: formData.condoFee ? Number(formData.condoFee) : undefined,
       address: formData.address,
       image: formData.image,
       condition: formData.condition,
@@ -267,6 +271,26 @@ export default function CadastroPage() {
                       value={formData.area}
                       onChange={e => setFormData({...formData, area: e.target.value})}
                       type="number" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="floor">Andar (se apto)</Label>
+                    <Input 
+                      id="floor"
+                      value={formData.floor}
+                      onChange={e => setFormData({...formData, floor: e.target.value})}
+                      type="number" 
+                      placeholder="Ex: 5"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="condoFee">Condomínio (R$)</Label>
+                    <Input 
+                      id="condoFee"
+                      value={formData.condoFee}
+                      onChange={e => setFormData({...formData, condoFee: e.target.value})}
+                      type="number" 
+                      placeholder="Ex: 1500"
                     />
                   </div>
                 </div>
