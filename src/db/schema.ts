@@ -17,6 +17,7 @@ export const users = pgTable('user', {
   emailVerified: timestamp('email_verified', { mode: 'date' }),
   password: text('password'), // For credentials auth
   image: text('image'),
+  isAdminn: boolean('is_adminn').default(false),
 });
 
 export const accounts = pgTable(

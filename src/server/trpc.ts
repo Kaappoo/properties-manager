@@ -33,6 +33,20 @@ const isAuthed = t.middleware(({ ctx, next }) => {
   });
 });
 
+const isAdmin = t.middleware(({ ctx, next }) => {
+  if (!ctx.session || !ctx.session.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  }
+  if (!ctx.session.user.isAdminn) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+  }
+  return next({
+    ctx: {
+      session: { ...ctx.session, user: ctx.session.user },
+    },
+  });
+});
+
 /**
  * Export reusable router and procedure helpers
  * that can be used throughout the router
@@ -40,4 +54,5 @@ const isAuthed = t.middleware(({ ctx, next }) => {
 export const router = t.router;
 export const publicProcedure = t.procedure;
 export const protectedProcedure = t.procedure.use(isAuthed);
+export const adminProcedure = t.procedure.use(isAdmin);
 export const middleware = t.middleware;

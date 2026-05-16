@@ -14,7 +14,9 @@ import {
 import { signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 
-const menuItems = [
+import { Shield } from 'lucide-react';
+
+const baseMenuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
   { icon: Building2, label: 'Imóveis', href: '/' },
   { icon: Users, label: 'Construtoras', href: '/construtoras' },
@@ -29,6 +31,11 @@ export default function Sidebar({ user }: { user: any }) {
   const whiteLabelName = "Pacheco & Andrade"
   const whiteLabelLogo = "P&A"
   if (isAuthPage) return null;
+
+  const menuItems = [...baseMenuItems];
+  if (user?.isAdminn) {
+    menuItems.splice(3, 0, { icon: Shield, label: 'Usuários', href: '/users' });
+  }
 
   return (
     <aside className="w-64 h-screen sticky top-0 bg-neutral-950 border-r border-white/5 flex flex-col z-50">

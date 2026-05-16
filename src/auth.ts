@@ -6,6 +6,20 @@ import bcrypt from 'bcryptjs';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { type DefaultSession } from 'next-auth';
+
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id: string;
+      isAdminn?: boolean | null;
+    } & DefaultSession['user'];
+  }
+
+  interface User {
+    isAdminn?: boolean | null;
+  }
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db),
@@ -41,12 +55,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (token.sub && session.user) {
         session.user.id = token.sub;
+        session.user.isAdminn = token.isAdminn as boolean | undefined;
       }
       return session;
     },
     async jwt({ token, user }) {
       if (user) {
         token.sub = user.id;
+        token.isAdminn = user.isAdminn;
       }
       return token;
     },
