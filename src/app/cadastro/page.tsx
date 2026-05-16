@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { CldUploadWidget } from 'next-cloudinary';
+import { Image as ImageIcon } from 'lucide-react';
 
 export default function CadastroPage() {
   const router = useRouter();
@@ -45,7 +47,7 @@ export default function CadastroPage() {
     condoFee: '',
     address: '',
     companyId: '',
-    image: 'https://images.unsplash.com/photo-1628624747186-a941c476b7ef?w=800&auto=format&fit=crop&q=80',
+    image: '',
     condition: 'Novo' as 'Novo' | 'Seminovo',
     highlights: [] as string[]
 
@@ -123,6 +125,50 @@ export default function CadastroPage() {
                 <CardDescription>Insira os detalhes principais do imóvel.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Foto Principal</Label>
+                  <div className="flex items-center gap-4">
+                    {formData.image ? (
+                      <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-white/10 group">
+                        <img src={formData.image} alt="Imóvel" className="w-full h-full object-cover" />
+                        <button 
+                          type="button" 
+                          onClick={() => setFormData({...formData, image: ''})}
+                          className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                        >
+                          <X className="w-6 h-6 text-white" />
+                        </button>
+                      </div>
+                    ) : (
+                      <CldUploadWidget 
+                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+                        onSuccess={(result) => {
+                          if (result.info && typeof result.info !== 'string') {
+                            setFormData({...formData, image: result.info.secure_url});
+                          }
+                        }}
+                      >
+                        {({ open }) => (
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => open()}
+                            className="h-32 w-32 flex flex-col items-center justify-center gap-2 border-dashed bg-white/5 hover:bg-white/10 border-white/20"
+                          >
+                            <ImageIcon className="w-6 h-6 text-white/50" />
+                            <span className="text-xs text-white/50 text-center">Fazer upload</span>
+                          </Button>
+                        )}
+                      </CldUploadWidget>
+                    )}
+                    <div className="flex-1 text-xs text-white/40">
+                      <p>Envie uma imagem de alta qualidade do imóvel.</p>
+                      <p>Formatos aceitos: JPG, PNG, WEBP.</p>
+                      <p className="mt-2 text-primary">Requer configuração do Cloudinary no .env</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="title">Título do Imóvel</Label>

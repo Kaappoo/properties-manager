@@ -18,14 +18,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { CldUploadWidget } from 'next-cloudinary';
+import { Image as ImageIcon } from 'lucide-react';
 
 export default function EditPropertyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const [success, setSuccess] = useState(false);
-  
+
   const { data: companies = [] } = trpc.company.list.useQuery();
-  
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -141,7 +143,7 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
   return (
     <div className="min-h-screen py-24 pb-32 relative">
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[100px] -z-10" />
-      
+
       <div className="container mx-auto px-6 max-w-4xl">
         <div className="mb-12">
           <Link href={`/property/${id}`} className="inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-6 text-sm">
@@ -174,14 +176,57 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
                 <CardDescription>Insira os detalhes principais do imóvel.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Foto Principal</Label>
+                  <div className="flex items-center gap-4">
+                    {formData.image ? (
+                      <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-white/10 group">
+                        <img src={formData.image} alt="Imóvel" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, image: '' })}
+                          className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                        >
+                          <X className="w-6 h-6 text-white" />
+                        </button>
+                      </div>
+                    ) : (
+                      <CldUploadWidget
+                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+                        onSuccess={(result) => {
+                          if (result.info && typeof result.info !== 'string') {
+                            setFormData({ ...formData, image: result.info.secure_url });
+                          }
+                        }}
+                      >
+                        {({ open }) => (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => open()}
+                            className="h-32 w-32 flex flex-col items-center justify-center gap-2 border-dashed bg-white/5 hover:bg-white/10 border-white/20"
+                          >
+                            <ImageIcon className="w-6 h-6 text-white/50" />
+                            <span className="text-xs text-white/50 text-center">Fazer upload</span>
+                          </Button>
+                        )}
+                      </CldUploadWidget>
+                    )}
+                    <div className="flex-1 text-xs text-white/40">
+                      <p>Envie uma imagem de alta qualidade do imóvel.</p>
+                      <p>Formatos aceitos: JPG, PNG, WEBP.</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="title">Título do Imóvel</Label>
-                    <Input 
+                    <Input
                       id="title"
-                      required 
+                      required
                       value={formData.title}
-                      onChange={e => setFormData({...formData, title: e.target.value})}
+                      onChange={e => setFormData({ ...formData, title: e.target.value })}
                       placeholder="Ex: Cobertura Duplex no Itaim"
                     />
                   </div>
@@ -217,12 +262,12 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label>Tipo de Negócio</Label>
-                    <Select 
-                      value={formData.type} 
-                      onValueChange={value => setFormData({...formData, type: value as 'Venda' | 'Aluguel'})}
+                    <Select
+                      value={formData.type}
+                      onValueChange={value => setFormData({ ...formData, type: value as 'Venda' | 'Aluguel' })}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -236,9 +281,9 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
 
                   <div className="space-y-2">
                     <Label>Estado do Imóvel</Label>
-                    <Select 
-                      value={formData.condition} 
-                      onValueChange={value => setFormData({...formData, condition: value as 'Novo' | 'Seminovo'})}
+                    <Select
+                      value={formData.condition}
+                      onValueChange={value => setFormData({ ...formData, condition: value as 'Novo' | 'Seminovo' })}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -253,23 +298,23 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
 
                   <div className="space-y-2">
                     <Label htmlFor="price">Preço (R$)</Label>
-                    <Input 
+                    <Input
                       id="price"
-                      required 
+                      required
                       value={formData.price}
-                      onChange={e => setFormData({...formData, price: e.target.value})}
-                      type="number" 
+                      onChange={e => setFormData({ ...formData, price: e.target.value })}
+                      type="number"
                       placeholder="Ex: 5000000"
                     />
                   </div>
 
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="address">Endereço Completo</Label>
-                    <Input 
+                    <Input
                       id="address"
-                      required 
+                      required
                       value={formData.address}
-                      onChange={e => setFormData({...formData, address: e.target.value})}
+                      onChange={e => setFormData({ ...formData, address: e.target.value })}
                       placeholder="Av. Faria Lima, 1000 - Itaim Bibi, São Paulo"
                     />
                   </div>
@@ -286,61 +331,61 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="bedrooms">Quartos</Label>
-                    <Input 
+                    <Input
                       id="bedrooms"
-                      required 
+                      required
                       value={formData.bedrooms}
-                      onChange={e => setFormData({...formData, bedrooms: e.target.value})}
-                      type="number" 
+                      onChange={e => setFormData({ ...formData, bedrooms: e.target.value })}
+                      type="number"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="bathrooms">Banheiros</Label>
-                    <Input 
+                    <Input
                       id="bathrooms"
-                      required 
+                      required
                       value={formData.bathrooms}
-                      onChange={e => setFormData({...formData, bathrooms: e.target.value})}
-                      type="number" 
+                      onChange={e => setFormData({ ...formData, bathrooms: e.target.value })}
+                      type="number"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="parking">Vagas</Label>
-                    <Input 
+                    <Input
                       id="parking"
-                      required 
+                      required
                       value={formData.parkingSpots}
-                      onChange={e => setFormData({...formData, parkingSpots: e.target.value})}
-                      type="number" 
+                      onChange={e => setFormData({ ...formData, parkingSpots: e.target.value })}
+                      type="number"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="area">Área (m²)</Label>
-                    <Input 
+                    <Input
                       id="area"
-                      required 
+                      required
                       value={formData.area}
-                      onChange={e => setFormData({...formData, area: e.target.value})}
-                      type="number" 
+                      onChange={e => setFormData({ ...formData, area: e.target.value })}
+                      type="number"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="floor">Andar (se apto)</Label>
-                    <Input 
+                    <Input
                       id="floor"
                       value={formData.floor}
-                      onChange={e => setFormData({...formData, floor: e.target.value})}
-                      type="number" 
+                      onChange={e => setFormData({ ...formData, floor: e.target.value })}
+                      type="number"
                       placeholder="Ex: 5"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="condoFee">Condomínio (R$)</Label>
-                    <Input 
+                    <Input
                       id="condoFee"
                       value={formData.condoFee}
-                      onChange={e => setFormData({...formData, condoFee: e.target.value})}
-                      type="number" 
+                      onChange={e => setFormData({ ...formData, condoFee: e.target.value })}
+                      type="number"
                       placeholder="Ex: 1500"
                     />
                   </div>
@@ -356,11 +401,11 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
               <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="description">Descrição Geral</Label>
-                  <Textarea 
+                  <Textarea
                     id="description"
                     required
                     value={formData.description}
-                    onChange={e => setFormData({...formData, description: e.target.value})}
+                    onChange={e => setFormData({ ...formData, description: e.target.value })}
                     rows={5}
                     placeholder="Detalhe os principais diferenciais do imóvel..."
                     className="resize-none"
@@ -370,7 +415,7 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
                 <div className="space-y-4">
                   <Label>Destaques e Comodidades</Label>
                   <div className="flex gap-2">
-                    <Input 
+                    <Input
                       value={newHighlight}
                       onChange={e => setNewHighlight(e.target.value)}
                       onKeyDown={e => {
@@ -382,7 +427,7 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
                       placeholder="Ex: Piscina Aquecida"
                       className="flex-1"
                     />
-                    <Button 
+                    <Button
                       type="button"
                       variant="secondary"
                       size="icon"
@@ -394,13 +439,13 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
 
                   <div className="flex flex-wrap gap-2">
                     {formData.highlights.map((highlight, index) => (
-                      <span 
-                        key={index} 
+                      <span
+                        key={index}
                         className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary-light px-3 py-1.5 rounded-full text-sm"
                       >
                         {highlight}
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => removeHighlight(index)}
                           className="hover:text-white transition-colors"
                         >
@@ -417,8 +462,8 @@ export default function EditPropertyPage({ params }: { params: Promise<{ id: str
             </Card>
 
             <div className="pt-6">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 size="lg"
                 disabled={updateProperty.isPending}
                 className="w-full shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)]"
